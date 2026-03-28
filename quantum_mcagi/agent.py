@@ -34,6 +34,10 @@ class QuantumAgent:
     def state(self) -> QuantumState:
         return self._state
 
+    def update_state(self, new_state: QuantumState) -> None:
+        """Replace the agent's internal quantum state."""
+        self._state = new_state
+
     def perceive(self, observation: np.ndarray) -> None:
         """Integrate an external observation by rotating the internal state.
 

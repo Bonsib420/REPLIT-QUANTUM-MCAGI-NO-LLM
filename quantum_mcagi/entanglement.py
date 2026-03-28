@@ -69,4 +69,4 @@ class EntanglementChannel:
         for i, a in enumerate(self.agents):
             blended = (1 - alpha) * padded[i] + alpha * mean_vec
             dim = a.state.dimension
-            a._state = QuantumState(blended[:dim])
+            a.update_state(QuantumState(blended[:dim]))
