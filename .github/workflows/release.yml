@@ -1,0 +1,64 @@
+name: Create Release
+
+# Trigger this workflow by pushing a version tag, e.g.:
+#   git tag v1.0
+#   git push origin v1.0
+#
+# This avoids uploading large files over an unreliable mobile/Termux connection
+# (which can produce "tls: bad record MAC" errors) by letting GitHub's servers
+# package and publish the release instead.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Package and publish release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release archive
+        run: |
+          zip -r "quantum_mcagi_${{ steps.version.outputs.VERSION }}.zip" . \
+            --exclude ".git/*" \
+            --exclude "*.pyc" \
+            --exclude "__pycache__/*" \
+            --exclude "*.egg-info/*" \
+            --exclude "dist/*" \
+            --exclude "build/*" \
+            --exclude ".env" \
+            --exclude "venv/*" \
+            --exclude ".venv/*"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "Quantum MCAGI ${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## Quantum MCAGI ${{ steps.version.outputs.VERSION }}
+
+            Full project release — quantum-inspired multi-agent AI without LLMs.
+
+            ### What's included
+            - Complete source code and all project files
+            - `.github/` workflows (so the release process is transparent and reproducible)
+            - `venv/` is excluded to keep the archive small — reinstall dependencies with `pip install -r requirements.txt`
+
+            ### Release triggered by
+            Tag `${{ steps.version.outputs.VERSION }}` pushed to `${{ github.repository }}`
+          files: "quantum_mcagi_${{ steps.version.outputs.VERSION }}.zip"
+          fail_on_unmatched_files: true
